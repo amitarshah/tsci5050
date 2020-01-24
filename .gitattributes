@@ -1,0 +1,14 @@
+*.sh	        text=auto
+*.csv           text=auto
+*.txt           text=auto
+*.R             text=auto
+*.r             text=auto
+*.md            text=auto
+.gitattributes  text=auto
+.gitmodules     text=auto
+LICENSE         text=auto
+README          text=auto
+DESCRIPTION     text=auto
+*.Rproj         text=auto
+.Rprofile       text=auto
+

@@ -1,0 +1,8 @@
+Imports:
+  pander,
+  dplyr,
+  markdown,
+  rmarkdown
+Remotes:
+  bokov/rio,
+  bokov/tidbits

@@ -1,0 +1,44 @@
+language: r
+#sudo: false
+pandoc_version: 2.3
+script: 
+  - Rscript --no-save --verbose --no-save ci_test.R
+cache: 
+  packages: true
+  directories:
+    - $HOME/.ghc
+    - $HOME/.cabal
+    - $HOME/.local
+    - $HOME/.stack
+warnings_are_errors: false
+jobs:
+  include:
+    - os: linux
+      r: oldrel
+    - os: linux
+      r: release
+    - os: linux
+      r: devel
+    - os: osx
+      osx_image: xcode8.3
+#addons:
+#  homebrew: 
+#    packages: pandoc-crossref
+before_install:
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then 
+    wget -q -O-  https://github.com/lierdakil/pandoc-crossref/releases/download/v0.3.3.0/osx-ghc84-pandoc23.tar.gz|tar -xz &&
+    sudo mv pandoc-crossref /usr/local/bin &&
+    echo "  DEPLOYED pandoc-crossref"; fi
+    #travis_wait 30 brew install llvm &&
+    #echo "  DEPLOYED llvm " &&
+    #export PATH="/usr/local/opt/llvm/bin:$PATH" &&
+    #export LDFLAGS="-L/usr/local/opt/llvm/lib" &&
+    #export CFLAGS="-I/usr/local/opt/llvm/include"; fi
+  - if [[ "$TRAVIS_OS_NAME" == "linux" && 
+    ! -f $HOME/.local/bin/pandoc-crossref ]]; 
+    then wget -qO- https://get.haskellstack.org/ | sh && 
+    git clone https://github.com/lierdakil/pandoc-crossref.git &&
+    cd pandoc-crossref && git checkout v0.3.3.0 &&
+    stack install && cd ..; fi
+  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then
+    sudo ln -s $HOME/.local/bin/* /usr/local/bin/; fi
