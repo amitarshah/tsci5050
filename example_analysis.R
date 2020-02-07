@@ -4,7 +4,7 @@
 #' output:
 #'   html_document:
 #'     toc: true
-#'     toc_float: true
+#'     toc_float: false
 #' ---
 #' 
 #' ### Settings 
@@ -44,14 +44,13 @@ if(!exists('dat01')) dat01 <- get(names(inputdata)[1]);
 #' this is the data dictionary for this data:
 pander (attr(dat01, "tblinfo"))
 
-binary_outcome <- "trt";
+binary_outcome <- c("hepato", "spiders", "ascites");
 
-numeric_outcome <- "bili"
+numeric_outcome <- c()
 #' 
 #' Insuring that the binary outcomes get treated as discrete values
 #' 
 for(ii in c(binary_outcome,'stage')){
-  browser();
   dat01[[ii]] <- factor(dat01[[ii]],exclude=NULL);
 }
 #' Again, replace `predictorvars` below with vectors containing one or more 
@@ -63,7 +62,7 @@ predictorvars;
 #' If you are satisfied with your choice of `binary_outcome`, `numeric_outcome`,
 #' and `predictorvars` you don't need to change the following line. It simply
 #' combines the above.
-mainvars <- c(predictorvars,binary_outcome,numeric_outcome);
+mainvars <- c(predictorvars,binary_outcome);
 mainvars;
 #' ### Plot the data
 #' 
@@ -89,36 +88,26 @@ dat01[,mainvars] %>% mutate_at(.,v(c_ordinal,.),factor) %>%
 #' can, among other things, help identify potential confounders and unexpected
 #' explanatory variables.
 #' 
-pander(print(CreateTableOne(vars = mainvars, strata = binary_outcome[1]
-                            ,data=dat01, includeNA=TRUE, test=FALSE)
-             , printToggle=FALSE)
-       ,caption='Cohort Characterization');
+mutate(dat01, trt=factor(trt, exclude = "",levels = c(1,2,NA)
+                         ,labels = c('No','Yes','Unknown'))) %>% 
+  CreateTableOne(vars = mainvars, strata = "trt"
+                 ,data=., includeNA=TRUE, test=FALSE) %>%
+  print(printToggle=FALSE) %>% pander(caption='Cohort Characterization');
 #' 
 #' ### Specify the statistical models
-#' 
-#' #### Numeric outcome
-#' 
-#' Formulas for the numeric outcome models.
-#+ numfrm, results='asis'
-num_formulas <- c();
-for(yy in numeric_outcome) for(xx in predictorvars){
-  num_formulas <- c(num_formulas,sprintf('%s ~ %s',yy,xx))};
-pander(cbind(num_formulas),justify='l');
-
-#' Linear regression models fitted to the above formulas.
-num_models <- sapply(num_formulas,function(xx) lm(xx,dat01) %>% update(.~.)
-                     ,simplify=FALSE);
-#' The results of the univariate model fits
-#+ pandernum,results='asis'
-for(xx in num_models) {cat('***','\n'); cat(pander(xx)); cat('***','\n');};
 #' 
 #' #### Binary outcome
 #' 
 #' Formulas for the binary outcome models
 #+ binfrm, results='asis'
 bin_formulas <- c();
-for(yy in binary_outcome) for(xx in predictorvars){
-  bin_formulas <- c(bin_formulas,sprintf('%s ~ %s',yy,xx))};
+for(yy in binary_outcome){
+  browser();
+  for(xx in predictorvars){
+    bin_formulas <- c(bin_formulas,sprintf('%s ~ %s',yy,xx))
+    }
+  };
+
 pander(cbind(bin_formulas),justify='l');
 #' Logistic regression models fitted to the above formulas.
 bin_models <- sapply(bin_formulas,function(xx){
